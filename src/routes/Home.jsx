@@ -1,4 +1,14 @@
-import { Paper, TextField, Box, Table, Fade } from "@mui/material";
+import {
+  Paper,
+  TextField,
+  Box,
+  Table,
+  Fade,
+  FormControl,
+  Select,
+  MenuItem,
+  InputLabel,
+} from "@mui/material";
 import React, { useState, useEffect } from "react";
 import InputAdornment from "@mui/material/InputAdornment";
 import SearchIcon from "@mui/icons-material/Search";
@@ -17,7 +27,8 @@ function Home() {
   const [symbol, setSymbol] = useState("");
   const [loading, isLoading] = useState(false);
   const navigate = useNavigate();
-  const [gainers, setGainers] = useState([]);
+  const [data, setData] = useState([]);
+  const [type, setType] = useState("gainers");
   const [showHomeData, setShowHomeData] = useState(false);
   const StyledTableCell = styled(TableCell)(({ theme }) => ({
     [`&.${tableCellClasses.head}`]: {
@@ -30,26 +41,30 @@ function Home() {
   }));
 
   useEffect(() => {
-    const getGainers = () => {
+    const getData = () => {
       isLoading(true);
-      fetch("https://alpha-stock-api.onrender.com/top_gainers")
+      fetch(
+        `https://financialmodelingprep.com/api/v3/stock_market/${
+          type === "gainers" ? "gainers" : "losers"
+        }?apikey=${process.env.REACT_APP_FMP}`
+      )
         .then((response) => response.json())
         .then((response) => {
           isLoading(false);
           setShowHomeData(true);
-          setGainers(response);
+          setData(response);
         })
         .catch((err) => {
           console.error(err);
           Swal.fire(
-            "Something went wrong while fetching Top Gainers!",
+            "Something went wrong while fetching from API!",
             "",
             "error"
           );
         });
     };
-    getGainers();
-  }, []);
+    getData();
+  }, [type]);
 
   return (
     <>
@@ -95,8 +110,21 @@ function Home() {
           mx="auto"
           my={2}
         >
+          <Box sx={{ textAlign: "center" }}>
+            <FormControl sx={{ my: 2 }}>
+              <InputLabel>Data Type</InputLabel>
+              <Select
+                value={type}
+                label="Data Type"
+                onChange={(e) => setType(e.target.value)}
+              >
+                <MenuItem value={"gainers"}>Top Gainers</MenuItem>
+                <MenuItem value={"losers"}>Top Losers</MenuItem>
+              </Select>
+            </FormControl>
+          </Box>
           <h2 style={{ textAlign: "center", marginBottom: "10px" }}>
-            Top Gainers in the Market
+            Top {type === "gainers" ? "Gainers" : "Losers"} in the Market
           </h2>
 
           <TableContainer component={Paper}>
@@ -116,13 +144,13 @@ function Home() {
                     <h3>Change</h3>
                   </StyledTableCell>
                   <StyledTableCell align="center">
-                    <h3>% Change</h3>
+                    <h3>Change %</h3>
                   </StyledTableCell>
                 </TableRow>
               </TableHead>
               <TableBody>
-                {gainers.map((row, index) => (
-                  <Fade in key={row.symbol} timeout={(index + 1) * 300}>
+                {data.map((row, index) => (
+                  <Fade in key={row.symbol} timeout={(index + 1) * 200}>
                     <TableRow
                       onClick={() => {
                         navigate(`/home/symbol/${row.symbol}`);
@@ -137,10 +165,14 @@ function Home() {
                       <TableCell component="th" scope="row">
                         {row.name}
                       </TableCell>
-                      <TableCell align="center">{row.symbol}</TableCell>
+                      <TableCell component="th" scope="row">
+                        {row.symbol}
+                      </TableCell>
                       <TableCell align="center">{row.price}</TableCell>
                       <TableCell align="center">{row.change}</TableCell>
-                      <TableCell align="center">{row.percent_change}</TableCell>
+                      <TableCell align="center">
+                        {row.changesPercentage}
+                      </TableCell>
                     </TableRow>
                   </Fade>
                 ))}
