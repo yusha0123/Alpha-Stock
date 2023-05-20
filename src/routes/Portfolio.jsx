@@ -14,6 +14,7 @@ import DeleteIcon from "@mui/icons-material/Delete";
 import { styled } from "@mui/material/styles";
 import TableCell, { tableCellClasses } from "@mui/material/TableCell";
 import Loading from "../utils/Loading";
+import { toast } from "react-hot-toast";
 
 function Portfolio() {
   const [dbItems, setDbItems] = useState([]);
@@ -79,6 +80,7 @@ function Portfolio() {
       await updateDoc(docRef, {
         portfolio: filteredObject,
       });
+      toast.success("Stock removed from your Portfolio!");
     } catch (error) {
       console.log(error);
     }
@@ -121,7 +123,7 @@ function Portfolio() {
                       align="center"
                       sx={{
                         color:
-                          item.previous_price < updatePrice[item.stockSymbol]
+                          item.previous_price <= updatePrice[item.stockSymbol]
                             ? "green"
                             : "red",
                       }}

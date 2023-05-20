@@ -9,7 +9,7 @@ import {
 } from "firebase/auth";
 import { auth, firestore } from "../fireConfig";
 import { updateProfile } from "firebase/auth";
-import Swal from "sweetalert2";
+import { toast } from "react-hot-toast";
 import Visibility from "@mui/icons-material/Visibility";
 import VisibilityOff from "@mui/icons-material/VisibilityOff";
 import InputAdornment from "@mui/material/InputAdornment";
@@ -38,12 +38,6 @@ function Signup_Login() {
 
   const SignUp = (e) => {
     e.preventDefault();
-    const Toast = Swal.mixin({
-      toast: true,
-      position: "top-end",
-      showConfirmButton: false,
-      timer: 3000,
-    });
     if (user.pass !== user.cpass) {
       setAlert({
         open: true,
@@ -73,19 +67,16 @@ function Signup_Login() {
         await setDoc(doc(firestore, "users", auth.currentUser.uid), {
           portfolio: [],
         });
-        Toast.fire({
-          icon: "success",
-          title: "Registration Successful!",
-        });
+        toast.success("Registration Successful!");
         navigate("/"); //navigating the user to home page
       })
       .catch((error) => {
         if (error.code === "auth/email-already-in-use") {
-          Swal.fire("Email already Exists!", "", "info");
+          toast.error("Email already Exists!");
         } else if (error.code === "auth/invalid-email") {
-          Swal.fire("Please enter a valid email address!", "", "error");
+          toast.error("Please enter a valid email address!");
         } else {
-          Swal.fire(error.code, "", "error");
+          toast.error(error.code);
         }
         setFlag(false);
         setUser({
@@ -116,11 +107,11 @@ function Signup_Login() {
           error.code === "auth/wrong-password" ||
           error.code === "auth/user-not-found"
         ) {
-          Swal.fire("Invalid Credentials!", "", "error");
+          toast.error("Invalid Credentials!");
         } else if (error.code === "auth/invalid-email") {
-          Swal.fire("Please enter a valid email address!", "", "error");
+          toast.error("Please enter a valid email address!");
         } else {
-          Swal.fire(error.code, "", "error");
+          toast.error(error.code);
         }
         setUser({
           ...user,

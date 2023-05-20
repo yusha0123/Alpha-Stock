@@ -5,7 +5,6 @@ import {
   Backdrop,
   CircularProgress,
   Grid,
-  Alert,
   TextField,
   Paper,
   Zoom,
@@ -19,7 +18,6 @@ import {
   updateEmail,
   updateProfile,
 } from "firebase/auth";
-import Swal from "sweetalert2";
 import PhotoCamera from "@mui/icons-material/PhotoCamera";
 import EmailIcon from "@mui/icons-material/Email";
 import KeyIcon from "@mui/icons-material/Key";
@@ -27,6 +25,7 @@ import { styled } from "@mui/material/styles";
 import { storage } from "../fireConfig";
 import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
 import { deepOrange } from "@mui/material/colors";
+import { toast } from "react-hot-toast";
 
 function Profile() {
   const [open, setOpen] = useState(false);
@@ -35,21 +34,6 @@ function Profile() {
   const [newPass, setNewPass] = useState("");
   const [cNewPass, setNewCPass] = useState("");
   const [newEmail, setNewEmail] = useState("");
-  const [passAlert, setPassAlert] = useState({
-    open: false,
-    text: "",
-    severity: "",
-  });
-  const [emailAlert, setEmailAlert] = useState({
-    open: false,
-    text: "",
-    severity: "",
-  });
-  const [avatarAlert, setAvatarAlert] = useState({
-    open: false,
-    text: "",
-    severity: "success",
-  });
 
   const StyledButton = styled(Button)(() => ({
     textTransform: "none",
@@ -64,8 +48,8 @@ function Profile() {
     if (!e.target.files[0]) {
       return;
     }
-    setOpen(true);
     const storageRef = ref(storage, "avatars/" + auth.currentUser.uid);
+    setOpen(true);
     try {
       await uploadBytes(storageRef, e.target.files[0]);
       const avatarURL = await getDownloadURL(storageRef);
@@ -73,44 +57,28 @@ function Profile() {
         photoURL: avatarURL,
       });
       setOpen(false);
-      setAvatarAlert({
-        open: true,
-        text: "Avatar Updated Successfully!",
-        severity: "success",
-      });
+      toast.success("Avatar Updated Successfully!");
     } catch (error) {
       console.log(error);
       setOpen(false);
-      setAvatarAlert({
-        open: true,
-        text: "Something went wrong, Please try Again Later!",
-        severity: "error",
-      });
+      toast.error("Something went wrong, Please try Again Later!");
     }
   };
 
   const handlePassClick = (e) => {
     e.preventDefault();
     if (newPass !== cNewPass) {
-      setPassAlert({
-        open: true,
-        text: "Passwords doesn't match!",
-        severity: "error",
-      });
+      toast.error("Passwords doesn't match!");
     } else if (newPass.length < 7 || userPass1.length < 7) {
-      setPassAlert({
-        open: true,
-        text: "Password length is too short!",
-        severity: "error",
-      });
+      toast.error("Password length is too short!");
     } else {
       setOpen(true);
       reauthenticate(userPass1).then((success) => {
         if (success) {
           ChangePass();
         } else {
-          Swal.fire("Incorrect Password!", "", "error");
           setOpen(false);
+          toast.error("Incorrect Password!");
         }
       });
     }
@@ -119,18 +87,14 @@ function Profile() {
   const handleEmailClick = (e) => {
     e.preventDefault();
     if (userPass2.length < 7) {
-      setEmailAlert({
-        open: true,
-        text: "Password length is too Short",
-        severity: "error",
-      });
+      toast.error("Password length is too Short!");
     } else {
       setOpen(true);
       reauthenticate(userPass2).then((success) => {
         if (success) {
           ChangeEmail();
         } else {
-          Swal.fire("Incorrect Password!", "", "error");
+          toast.error("Incorrect Password!");
           setOpen(false);
         }
       });
@@ -140,18 +104,10 @@ function Profile() {
   const ChangeEmail = () => {
     updateEmail(auth.currentUser, newEmail)
       .then(() => {
-        setEmailAlert({
-          open: true,
-          text: "Email Updated Successfully!",
-          severity: "success",
-        });
+        toast.success("Email Updated Successfully!");
       })
       .catch((error) => {
-        setEmailAlert({
-          open: true,
-          text: error.code,
-          severity: "error",
-        });
+        toast.error(error.code);
       })
       .finally(() => {
         setOpen(false);
@@ -163,18 +119,10 @@ function Profile() {
   const ChangePass = () => {
     updatePassword(auth.currentUser, newPass)
       .then(() => {
-        setPassAlert({
-          open: true,
-          text: "Password Updated Successfully!",
-          severity: "success",
-        });
+        toast.success("Password Updated Successfully!");
       })
       .catch((error) => {
-        setPassAlert({
-          open: true,
-          text: error.code,
-          severity: "error",
-        });
+        toast.error(error.code);
       })
       .finally(() => {
         setOpen(false);
@@ -248,21 +196,6 @@ function Profile() {
                     onChange={changeAvatar}
                   />
                 </StyledButton>
-                {avatarAlert.open && (
-                  <Alert
-                    variant="filled"
-                    severity={avatarAlert.severity}
-                    onClose={() =>
-                      setAvatarAlert({
-                        open: false,
-                        text: "",
-                        severity: "",
-                      })
-                    }
-                  >
-                    {avatarAlert.text}
-                  </Alert>
-                )}
               </Stack>
               <Grid container spacing={2}>
                 <Grid item xs={12} sm={6}>
@@ -294,7 +227,7 @@ function Profile() {
             <form onSubmit={handlePassClick}>
               <Stack direction="column" gap={2} alignItems="center" mb={3}>
                 <h2> Change Password</h2>
-                {passAlert.open && (
+                {/* {passAlert.open && (
                   <Alert
                     variant="filled"
                     severity={passAlert.severity}
@@ -308,7 +241,7 @@ function Profile() {
                   >
                     {passAlert.text}
                   </Alert>
-                )}
+                )} */}
                 <Grid container spacing={2}>
                   <Grid item xs={12} sm={6}>
                     <TextField
@@ -369,7 +302,7 @@ function Profile() {
             <form onSubmit={handleEmailClick}>
               <Stack direction="column" gap={2} alignItems="center" mb={3}>
                 <h2>Change Email</h2>
-                {emailAlert.open && (
+                {/* {emailAlert.open && (
                   <Alert
                     variant="filled"
                     severity={emailAlert.severity}
@@ -383,7 +316,7 @@ function Profile() {
                   >
                     {emailAlert.text}
                   </Alert>
-                )}
+                )} */}
                 <Grid container spacing={2}>
                   <Grid item xs={12} sm={6}>
                     <TextField

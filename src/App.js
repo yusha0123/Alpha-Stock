@@ -4,6 +4,7 @@ import SpecialRoute from "./utils/SpecialRoute";
 import PrivateRoutes from "./utils/PrivateRoutes";
 import React, { lazy, Suspense } from "react";
 import Loading from "./utils/Loading";
+import { Toaster } from "react-hot-toast";
 
 function App() {
   const NotFound = lazy(() => import("./routes/NotFound"));
@@ -16,6 +17,16 @@ function App() {
   return (
     <Suspense fallback={<Loading />}>
       <Router>
+        <Toaster
+          position="top-center"
+          toastOptions={{
+            duration: 4000,
+            style: {
+              background: "#394867",
+              color: "#fff",
+            },
+          }}
+        />
         <Routes>
           <Route element={<PrivateRoutes />}>
             <Route element={<Home />} path="/home" exact />

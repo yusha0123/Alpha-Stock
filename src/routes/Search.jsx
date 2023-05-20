@@ -15,7 +15,6 @@ import {
   TableCell,
   TableRow,
   TableBody,
-  Snackbar,
   Alert,
   Grow,
   Zoom,
@@ -28,6 +27,7 @@ import StarIcon from "@mui/icons-material/Star";
 import { arrayUnion, doc, getDoc, updateDoc } from "firebase/firestore";
 import { auth, firestore } from "../fireConfig";
 import Loading from "../utils/Loading";
+import { toast } from "react-hot-toast";
 
 const Search = () => {
   const { symbol } = useParams();
@@ -40,11 +40,6 @@ const Search = () => {
   const [flag, setflag] = useState(false);
   const [title, setTitle] = useState("");
   const [AlreadyAdded, setAlreadyAdded] = useState(false);
-  const [snack, setSnack] = useState({
-    open: false,
-    severity: "success",
-    message: "",
-  });
   const [alert, setAlert] = useState({
     show: false,
     message: "",
@@ -162,18 +157,10 @@ const Search = () => {
         portfolio: filteredObject,
       });
       setAlreadyAdded(false);
-      setSnack({
-        open: true,
-        severity: "warning",
-        message: "Stock removed from your Portfolio!",
-      });
+      toast.success("Stock removed from your Portfolio!");
     } catch (error) {
       console.log(error);
-      setSnack({
-        open: true,
-        severity: "error",
-        message: "Something went Wrong!",
-      });
+      toast.error("Something went Wrong!");
     }
   };
 
@@ -190,37 +177,14 @@ const Search = () => {
         }),
       });
       setAlreadyAdded(true);
-      setSnack({
-        open: true,
-        severity: "success",
-        message: "Stock added to your Portfolio!",
-      });
+      toast.success("Stock added to your Portfolio!");
     } catch (error) {
       console.log(error);
-      setSnack({
-        open: true,
-        severity: "error",
-        message: "Something went Wrong!",
-      });
+      toast.error("Something went Wrong!");
     }
   };
   return (
     <>
-      <Snackbar
-        open={snack.open}
-        autoHideDuration={4000}
-        anchorOrigin={{ vertical: "top", horizontal: "center" }}
-        onClose={() => setSnack({ ...snack, open: false })}
-      >
-        <Alert
-          onClose={() => setSnack({ ...snack, open: false })}
-          severity={snack.severity}
-          variant="filled"
-          sx={{ width: "100%" }}
-        >
-          {snack.message}
-        </Alert>
-      </Snackbar>
       {loading && <Loading />}
       <Box
         sx={{ width: { xs: "90%", sm: "80%", md: "50%", lg: "40%" } }}

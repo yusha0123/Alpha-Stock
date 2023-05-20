@@ -8,12 +8,12 @@ import {
   Select,
   MenuItem,
   InputLabel,
+  Alert,
 } from "@mui/material";
 import React, { useState, useEffect } from "react";
 import InputAdornment from "@mui/material/InputAdornment";
 import SearchIcon from "@mui/icons-material/Search";
 import IconButton from "@mui/material/IconButton";
-import Swal from "sweetalert2";
 import TableBody from "@mui/material/TableBody";
 import TableCell, { tableCellClasses } from "@mui/material/TableCell";
 import { styled } from "@mui/material/styles";
@@ -39,6 +39,10 @@ function Home() {
       fontSize: 14,
     },
   }));
+  const [alert, setAlert] = useState({
+    show: false,
+    message: "",
+  });
 
   useEffect(() => {
     const getData = () => {
@@ -50,17 +54,18 @@ function Home() {
       )
         .then((response) => response.json())
         .then((response) => {
-          isLoading(false);
-          setShowHomeData(true);
-          setData(response);
+          if (response.length > 0) {
+            isLoading(false);
+            setShowHomeData(true);
+            setData(response);
+          }
         })
         .catch((err) => {
           console.error(err);
-          Swal.fire(
-            "Something went wrong while fetching from API!",
-            "",
-            "error"
-          );
+          setAlert({
+            show: true,
+            message: "Something went wrong while fetching from API!",
+          });
         });
     };
     getData();
@@ -104,6 +109,17 @@ function Home() {
           />
         </form>
       </Box>
+      {alert.show && (
+        <Box
+          sx={{ width: { xs: "90%", sm: "80%", md: "50%", lg: "40%" } }}
+          mx="auto"
+          mt={5}
+        >
+          <Alert severity="error" variant="filled">
+            {alert.message}
+          </Alert>
+        </Box>
+      )}
       {showHomeData && (
         <Box
           sx={{ width: { xs: "90%", md: "80%", lg: "75%" } }}
@@ -149,33 +165,34 @@ function Home() {
                 </TableRow>
               </TableHead>
               <TableBody>
-                {data.map((row, index) => (
-                  <Fade in key={row.symbol} timeout={(index + 1) * 200}>
-                    <TableRow
-                      onClick={() => {
-                        navigate(`/home/symbol/${row.symbol}`);
-                      }}
-                      sx={{
-                        cursor: "pointer",
-                        ":hover": {
-                          backgroundColor: " #EEEEEE",
-                        },
-                      }}
-                    >
-                      <TableCell component="th" scope="row">
-                        {row.name}
-                      </TableCell>
-                      <TableCell component="th" scope="row">
-                        {row.symbol}
-                      </TableCell>
-                      <TableCell align="center">{row.price}</TableCell>
-                      <TableCell align="center">{row.change}</TableCell>
-                      <TableCell align="center">
-                        {row.changesPercentage}
-                      </TableCell>
-                    </TableRow>
-                  </Fade>
-                ))}
+                {data.length > 0 &&
+                  data.map((row, index) => (
+                    <Fade in key={row.symbol} timeout={(index + 1) * 200}>
+                      <TableRow
+                        onClick={() => {
+                          navigate(`/home/symbol/${row.symbol}`);
+                        }}
+                        sx={{
+                          cursor: "pointer",
+                          ":hover": {
+                            backgroundColor: " #EEEEEE",
+                          },
+                        }}
+                      >
+                        <TableCell component="th" scope="row">
+                          {row.name}
+                        </TableCell>
+                        <TableCell component="th" scope="row">
+                          {row.symbol}
+                        </TableCell>
+                        <TableCell align="center">{row.price}</TableCell>
+                        <TableCell align="center">{row.change}</TableCell>
+                        <TableCell align="center">
+                          {row.changesPercentage}
+                        </TableCell>
+                      </TableRow>
+                    </Fade>
+                  ))}
               </TableBody>
             </Table>
           </TableContainer>
