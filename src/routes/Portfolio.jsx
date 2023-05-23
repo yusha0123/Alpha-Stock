@@ -15,6 +15,8 @@ import { styled } from "@mui/material/styles";
 import TableCell, { tableCellClasses } from "@mui/material/TableCell";
 import Loading from "../utils/Loading";
 import { toast } from "react-hot-toast";
+import ArrowDropUpIcon from "@mui/icons-material/ArrowDropUp";
+import ArrowDropDownIcon from "@mui/icons-material/ArrowDropDown";
 
 function Portfolio() {
   const [dbItems, setDbItems] = useState([]);
@@ -129,7 +131,15 @@ function Portfolio() {
                       }}
                     >
                       {updatePrice[item.stockSymbol] ? (
-                        updatePrice[item.stockSymbol]
+                        <React.Fragment>
+                          {item.previous_price <=
+                          updatePrice[item.stockSymbol] ? (
+                            <ArrowDropUpIcon />
+                          ) : (
+                            <ArrowDropDownIcon />
+                          )}
+                          {updatePrice[item.stockSymbol]}
+                        </React.Fragment>
                       ) : (
                         <StyledButton
                           onClick={() => fetchCurrentPrice(item.stockSymbol)}

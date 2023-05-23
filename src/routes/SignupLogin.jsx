@@ -129,7 +129,7 @@ function Signup_Login() {
     <>
       <Stack
         direction="column"
-        sx={{ height: "100vh" }}
+        sx={{ height: "100vh", width: "100%" }}
         alignItems="center"
         justifyContent="center"
       >
@@ -146,6 +146,10 @@ function Signup_Login() {
           <Box
             sx={{
               width: { xs: "85%", sm: "60%", md: "30%", lg: "25%" },
+              boxShadow: 3,
+              borderRadius: 2,
+              px: 4,
+              py: 6,
             }}
           >
             <form onSubmit={logIn ? SignUp : Login}>
