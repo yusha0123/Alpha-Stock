@@ -2,8 +2,6 @@ import {
   Avatar,
   Button,
   Stack,
-  Backdrop,
-  CircularProgress,
   Grid,
   TextField,
   Paper,
@@ -28,12 +26,12 @@ import { deepOrange } from "@mui/material/colors";
 import { toast } from "react-hot-toast";
 
 function Profile() {
-  const [open, setOpen] = useState(false);
   const [userPass1, setUserPass1] = useState("");
   const [userPass2, setUserPass2] = useState("");
   const [newPass, setNewPass] = useState("");
   const [cNewPass, setNewCPass] = useState("");
   const [newEmail, setNewEmail] = useState("");
+  const [disableBtn, setDisableBtn] = useState(false);
 
   const StyledButton = styled(Button)(() => ({
     textTransform: "none",
@@ -49,19 +47,24 @@ function Profile() {
       return;
     }
     const storageRef = ref(storage, "avatars/" + auth.currentUser.uid);
-    setOpen(true);
+    setDisableBtn(true);
+    const loadingToastId = toast.loading("Uploading Avatar...");
     try {
       await uploadBytes(storageRef, e.target.files[0]);
       const avatarURL = await getDownloadURL(storageRef);
       await updateProfile(auth.currentUser, {
         photoURL: avatarURL,
       });
-      setOpen(false);
-      toast.success("Avatar Updated Successfully!");
+      toast.success("Avatar Updated Successfully!", {
+        id: loadingToastId,
+      });
+      setDisableBtn(false);
     } catch (error) {
       console.log(error);
-      setOpen(false);
-      toast.error("Something went wrong, Please try Again Later!");
+      toast.error("Something went wrong, Please try Again Later!", {
+        id: loadingToastId,
+      });
+      setDisableBtn(false);
     }
   };
 
@@ -72,16 +75,39 @@ function Profile() {
     } else if (newPass.length < 7 || userPass1.length < 7) {
       toast.error("Password length is too short!");
     } else {
-      setOpen(true);
+      setDisableBtn(true);
+      const passChangeToastId = toast.loading("Processing Changes...");
       reauthenticate(userPass1).then((success) => {
         if (success) {
-          ChangePass();
+          ChangePass(passChangeToastId);
         } else {
-          setOpen(false);
-          toast.error("Incorrect Password!");
+          setDisableBtn(false);
+          toast.error("Incorrect Password!", {
+            id: passChangeToastId,
+          });
         }
       });
     }
+  };
+
+  const ChangePass = (passChangeToastId) => {
+    updatePassword(auth.currentUser, newPass)
+      .then(() => {
+        toast.success("Password Updated Successfully!", {
+          id: passChangeToastId,
+        });
+      })
+      .catch((error) => {
+        toast.error(error.code, {
+          id: passChangeToastId,
+        });
+      })
+      .finally(() => {
+        setDisableBtn(false);
+        setNewPass("");
+        setNewCPass("");
+        setUserPass1("");
+      });
   };
 
   const handleEmailClick = (e) => {
@@ -89,46 +115,37 @@ function Profile() {
     if (userPass2.length < 7) {
       toast.error("Password length is too Short!");
     } else {
-      setOpen(true);
+      setDisableBtn(true);
+      const emailChangeToastId = toast.loading("Processing Changes...");
       reauthenticate(userPass2).then((success) => {
         if (success) {
-          ChangeEmail();
+          ChangeEmail(emailChangeToastId);
         } else {
-          toast.error("Incorrect Password!");
-          setOpen(false);
+          toast.error("Incorrect Password!", {
+            id: emailChangeToastId,
+          });
+          setDisableBtn(false);
         }
       });
     }
   };
 
-  const ChangeEmail = () => {
+  const ChangeEmail = (emailChangeToastId) => {
     updateEmail(auth.currentUser, newEmail)
       .then(() => {
-        toast.success("Email Updated Successfully!");
+        toast.success("Email Updated Successfully!", {
+          id: emailChangeToastId,
+        });
       })
       .catch((error) => {
-        toast.error(error.code);
+        toast.error(error.code, {
+          id: emailChangeToastId,
+        });
       })
       .finally(() => {
-        setOpen(false);
+        setDisableBtn(false);
         setNewEmail("");
         setUserPass2("");
-      });
-  };
-
-  const ChangePass = () => {
-    updatePassword(auth.currentUser, newPass)
-      .then(() => {
-        toast.success("Password Updated Successfully!");
-      })
-      .catch((error) => {
-        toast.error(error.code);
-      })
-      .finally(() => {
-        setOpen(false);
-        setNewPass("");
-        setNewCPass("");
-        setUserPass1("");
       });
   };
 
@@ -148,14 +165,6 @@ function Profile() {
 
   return (
     <>
-      <div>
-        <Backdrop
-          sx={{ color: "#fff", zIndex: (theme) => theme.zIndex.drawer + 1 }}
-          open={open}
-        >
-          <CircularProgress color="inherit" />
-        </Backdrop>
-      </div>
       <Stack
         direction="column"
         gap={3}
@@ -185,7 +194,7 @@ function Profile() {
                 <StyledButton
                   variant="contained"
                   component="label"
-                  disabled={open}
+                  disabled={disableBtn}
                   endIcon={<PhotoCamera />}
                 >
                   Change Avatar
@@ -227,21 +236,7 @@ function Profile() {
             <form onSubmit={handlePassClick}>
               <Stack direction="column" gap={2} alignItems="center" mb={3}>
                 <h2> Change Password</h2>
-                {/* {passAlert.open && (
-                  <Alert
-                    variant="filled"
-                    severity={passAlert.severity}
-                    onClose={() =>
-                      setPassAlert({
-                        open: false,
-                        text: "",
-                        severity: "",
-                      })
-                    }
-                  >
-                    {passAlert.text}
-                  </Alert>
-                )} */}
+
                 <Grid container spacing={2}>
                   <Grid item xs={12} sm={6}>
                     <TextField
@@ -283,7 +278,7 @@ function Profile() {
                 <StyledButton
                   variant="contained"
                   onClick={handlePassClick}
-                  disabled={open}
+                  disabled={disableBtn}
                   endIcon={<KeyIcon />}
                   type="submit"
                 >
@@ -302,21 +297,6 @@ function Profile() {
             <form onSubmit={handleEmailClick}>
               <Stack direction="column" gap={2} alignItems="center" mb={3}>
                 <h2>Change Email</h2>
-                {/* {emailAlert.open && (
-                  <Alert
-                    variant="filled"
-                    severity={emailAlert.severity}
-                    onClose={() =>
-                      setEmailAlert({
-                        open: false,
-                        text: "",
-                        severity: "",
-                      })
-                    }
-                  >
-                    {emailAlert.text}
-                  </Alert>
-                )} */}
                 <Grid container spacing={2}>
                   <Grid item xs={12} sm={6}>
                     <TextField
@@ -346,7 +326,7 @@ function Profile() {
                 <StyledButton
                   variant="contained"
                   onClick={handleEmailClick}
-                  disabled={open}
+                  disabled={disableBtn}
                   type="submit"
                   endIcon={<EmailIcon />}
                 >
